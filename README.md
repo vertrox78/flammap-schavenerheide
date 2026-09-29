@@ -35,6 +35,12 @@ die Landschaftsdatei gebaut, `flammap/GA_heath.fmd` geladen und je
 Szenario ein Lauf gerechnet (`S1_Output.tif` … `S4_Output.tif`), dazu
 zwei MTT-Läufe für S3 ohne/mit Barriere (`S3_MTT_Output_1/2.tif`).
 
+> **`GA_heath.fmd` muss im Format `ENGLISH` bleiben.** Die Verbrennungswärme
+> ist darin bereits in BTU/lb umgerechnet (8.398/9.346 BTU/lb =
+> 19.533/21.739 kJ/kg). Eine `METRIC`-Fassung derselben Parameter lieferte
+> in FlamMap 6 für die Heide (Modell 89) eine nahezu windunabhängige
+> Ausbreitung, in S3 weniger als ein Zehntel des nach Rothermel erwarteten Werts.
+
 ## Software
 
 R 4.5.2 · terra 1.9.27 · lidR 4.3.2 · ranger 0.17.0 · RCSF 1.0.2 ·
