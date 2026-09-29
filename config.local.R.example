@@ -1,0 +1,28 @@
+# ============================================================
+#  Maschinenspezifische Pfade -- Vorlage
+#
+#  Nach config.local.R kopieren und anpassen (nicht versioniert).
+#  Alternativ ueber Umgebungsvariablen, die Vorrang haben:
+#    FLAMMAP_ROOT, FLAMMAP_QGIS, FLAMMAP_DIR, FLAMMAP_DWD, FLAMMAP_DATA
+#  Es muessen nur die Pfade gesetzt sein, die die ausgefuehrten
+#  Schritte brauchen.
+# ------------------------------------------------------------
+
+# Drohnenbefliegung: LAS-Punktwolken, RGB- und Multispektral-
+# Orthomosaike. Schritte 00-02c.
+cfg_root <- "C:/Pfad/zu/Drohnendaten"
+
+# Trainingspolygone (trainingspolygone1.gpkg). Schritte 04, 15.
+cfg_qgis_dir <- "C:/Pfad/zu/QGIS"
+
+# FlamMap-Arbeitsverzeichnis. Schritte 12-16. Erwartet:
+#   Output/S1_Output.tif ... S4_Output.tif
+#   Output/S3_MTT_Output_1.tif, S3_MTT_Output_2.tif
+#   IgnitionS3_1.shp, barriere_s3_5.shp
+cfg_flammap_dir <- "C:/Pfad/zu/FlamMap"
+
+# DWD-Tageswerte (produkt_klima_tag_*.txt). Schritt 11.
+cfg_dwd_dir <- "C:/Pfad/zu/DWD"
+
+# Optional: Ablage der Zwischenergebnisse (Vorgabe: data/)
+# cfg_out_dir <- "D:/flammap-data"

@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+# FlamMap 6 erwartet CRLF
+*.fmd  text eol=crlf
+
+*.tif  binary
+*.pdf  binary
+*.rds  binary
+*.gpkg binary
+*.shp  binary
+*.shx  binary
+*.dbf  binary
+*.png  binary

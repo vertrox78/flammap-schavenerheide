@@ -1,0 +1,82 @@
+cff-version: 1.2.0
+message: >-
+  Wenn Sie diesen Code verwenden, zitieren Sie ihn bitte wie unten
+  angegeben.
+title: >-
+  Waldbrandsimulation Schavener Heide: Verarbeitungskette von
+  Drohnendaten zum FlamMap-Landschaftsmodell
+abstract: >-
+  R-Verarbeitungskette einer drohnengestuetzten Waldbrandsimulation in
+  der Schavener Heide (Nordrhein-Westfalen). Sie fuehrt von
+  LiDAR-Punktwolken und Multispektralorthomosaiken ueber eine
+  Random-Forest-Vegetationsklassifikation zu einer Brennstoffmodellkarte,
+  exportiert das Landschaftsmodell fuer FlamMap 6 und wertet vier
+  Feuerwetterszenarien sowie einen ergaenzenden Minimum-Travel-Time-Lauf
+  mit simulierter Riegelstellung aus.
+type: software
+authors:
+  - given-names: Jan Jakob
+    family-names: "Wotka"
+    email:
+license: PolyForm-Noncommercial-1.0.0
+repository-code: ""
+keywords:
+  - Waldbrand
+  - FlamMap
+  - Rothermel
+  - LiDAR
+  - Fernerkundung
+  - Random Forest
+  - Brennstoffmodell
+  - Schavener Heide
+  - R
+date-released: "2026-09-16"
+
+references:
+  - type: article
+    authors:
+      - family-names: Ascoli
+        given-names: Davide
+    title: >-
+      Building Rothermel fire behaviour fuel models by genetic algorithm
+      optimisation
+    year: 2015
+    notes: Custom-Brennstoffmodell GA-heath (Modell 89)
+
+  - type: report
+    authors:
+      - family-names: Scott
+        given-names: Joe H.
+      - family-names: Burgan
+        given-names: Robert E.
+    title: >-
+      Standard fire behavior fuel models: a comprehensive set for use with
+      Rothermel's surface fire spread model
+    year: 2005
+    notes: Standardmodelle GR4, TL6, TU5, NB8, NB9
+
+  - type: report
+    authors:
+      - family-names: Andrews
+        given-names: Patricia L.
+      - family-names: Rothermel
+        given-names: Richard C.
+    title: Charts for interpreting wildland fire behavior characteristics
+    year: 1982
+    notes: Flammenlaengenschwellen 1,2 m und 3,4 m
+
+  - type: article
+    authors:
+      - family-names: Simard
+        given-names: Albert J.
+    title: The moisture content of forest fuels
+    year: 1968
+    notes: Totbrennstoff-Feuchte aus Temperatur und relativer Feuchte
+
+  - type: data
+    authors:
+      - name: Deutscher Wetterdienst
+    title: Climate Data Center, Tageswerte Klima (Stationen 1327, 3591, 3623)
+    url: >-
+      https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/daily/kl/
+    license: "GeoNutzV"

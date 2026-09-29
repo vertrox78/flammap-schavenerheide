@@ -1,0 +1,22 @@
+# Maschinenspezifische Pfade
+config.local.R
+
+# Zwischen- und Endergebnisse (mehrere GB); nur kleine Artefakte versioniert
+data/*
+!data/fuel_model.tif
+!data/vegetation_classified.tif
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# GDAL-Seitendateien
+*.aux.xml

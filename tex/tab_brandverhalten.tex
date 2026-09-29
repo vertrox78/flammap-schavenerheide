@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Brandverhalten je Brennstoffmodell und Szenario (Mediane): Flammenlänge, Ausbreitungsgeschwindigkeit und Feuerlinienintensität.}
+  \label{tab:brandverhalten}
+  \small
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabular}{@{}lrrrrrrrrrrrr@{}}
+    \toprule
+    & \multicolumn{4}{c}{Flammenlänge (m)} & \multicolumn{4}{c}{Ausbreitung (m\,min$^{-1}$)} & \multicolumn{4}{c}{Intensität (kW\,m$^{-1}$)} \\
+    \cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+    Brennstoffmodell & S1 & S2 & S3 & S4 & S1 & S2 & S3 & S4 & S1 & S2 & S3 & S4 \\
+    \midrule
+    Heide (GA-heath) & 0{,}63 & 2{,}08 & 3{,}99 & 4{,}69 & 1{,}74 & 10{,}88 & 29{,}40 & 40{,}10 & 96 & 1274 & 5267 & 7478 \\
+    Gras (GR4) & 0{,}15 & 1{,}49 & 2{,}52 & 3{,}24 & 0{,}47 & 9{,}60 & 23{,}45 & 41{,}25 & 4 & 620 & 1932 & 3349 \\
+    Laubwald (TL6) & 0{,}25 & 0{,}30 & 0{,}34 & 0{,}37 & 0{,}18 & 0{,}26 & 0{,}33 & 0{,}40 & 13 & 19 & 25 & 31 \\
+    Nadelwald (TU5) & 0{,}80 & 1{,}07 & 1{,}25 & 2{,}33 & 0{,}39 & 0{,}66 & 0{,}89 & 1{,}72 & 162 & 298 & 422 & 872 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize Die nicht brennbaren Modelle NB8 (Moor) und NB9 (Offenland einschließlich der Wege) sind nicht aufgeführt, da FlamMap für sie über alle Szenarien hinweg kein Brandverhalten berechnet. Feuerlinienintensität und Flammenlänge sind im Modell über eine feste Potenzbeziehung aneinander gekoppelt ($I \propto L^{2{,}17}$); einzig der Nadelwald in S4 weicht davon ab, weil die Flammenlänge dort aus dem Kronenfeuermodell stammt (Abschnitt~\ref{sec:kronenfeuer}).
+\end{table}
