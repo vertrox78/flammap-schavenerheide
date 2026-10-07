@@ -320,11 +320,12 @@ aufzaehlung <- if (length(teile) > 1) {
   teile
 }
 
+#  Die Anteile am vorhandenen Bestand stehen im Fliesstext der Arbeit
+#  und werden nicht zusaetzlich in der Tabellennotiz wiederholt.
+cat("Verbrannter Anteil am Bestand:", aufzaehlung, "\n")
 fuss_fuel <- paste0(
   "Die Prozentangabe bezeichnet den Anteil des jeweiligen Brennstoffmodells an der ",
-  "insgesamt geschützten Fläche. Bezogen auf den im Untersuchungsgebiet vorhandenen ",
-  "Bestand sinkt der verbrannte Flächenanteil durch die Riegelstellung ",
-  aufzaehlung, ".")
+  "insgesamt geschützten Fläche.")
 
 fp_tabelle("tab_mtt_fuel.tex",
   "Durch die Riegelstellung geschützte Fläche je Brennstoffmodell, Szenario S3.",

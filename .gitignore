@@ -1,10 +1,10 @@
 # Maschinenspezifische Pfade
 config.local.R
 
-# Zwischen- und Endergebnisse (mehrere GB); nur kleine Artefakte versioniert
-data/*
-!data/fuel_model.tif
-!data/vegetation_classified.tif
+# Zwischen- und Endergebnisse (mehrere GB) und Abbildungen; beide beruhen
+# auf der Drohnenbefliegung und werden nicht veroeffentlicht
+data/
+figures/
 
 # R
 .Rproj.user/

@@ -9,13 +9,16 @@ Feuerwetterszenarien.
 R/          Verarbeitungsschritte 00–16, Konfiguration (00_config.R)
 run_all.R   Gesamtlauf
 flammap/    Brennstoffmodell (.fmd), Szenarien (.fms), Zündpunkt/Barriere
-data/       Brennstoff- und Klassenkarte
 tex/        erzeugte Tabellen
-figures/    erzeugte Abbildungen
 ```
 
-Die Eingangsdaten (Befliegung, Trainingspolygone, FlamMap-Ausgaben) sind
-nicht enthalten.
+Nicht enthalten sind die Drohnenbefliegung vom 11.09.2023 (Dr. Jan R. K.
+Lehmann, Institut für Landschaftsökologie, Universität Münster) und alle
+daraus abgeleiteten Raster: Höhenmodelle, Vegetationsindizes,
+Klassifikation, Brennstoffkarte, FlamMap-Ausgaben und die Karten der
+Arbeit. Ebenfalls nicht enthalten sind die Trainingspolygone. Die Skripte
+legen `data/` und `figures/` beim Lauf selbst an. Die Tabellen in `tex/`
+enthalten nur die aggregierten Ergebnisse, die auch in der Arbeit stehen.
 
 ## Nutzung
 
@@ -28,7 +31,8 @@ Rscript run_all.R auswertung               # nur 12–16
 
 Gruppen: `roh` (00–03), `modell` (04–05b), `brennstoff` (06–10),
 `wetter` (11), `auswertung` (12–16). Schritte ohne konfigurierte
-Eingaben werden übersprungen.
+Eingaben werden übersprungen. Die Auswertung braucht neben den
+FlamMap-Ausgaben die Raster der Schritte 03–10 in `data/`.
 
 Zwischen Schritt 10 und 12 wird in FlamMap 6 aus `data/LCP_layers/*.asc`
 die Landschaftsdatei gebaut, `flammap/GA_heath.fmd` geladen und je
@@ -50,4 +54,5 @@ FlamMap 6 · QGIS 3.40.5
 
 Code: [PolyForm Noncommercial 1.0.0](LICENSE) – Nutzung für Forschung,
 Lehre und private Zwecke frei, kommerzielle Nutzung nicht gestattet.
-DWD-Daten: GeoNutzV.
+Die Szenarien in `flammap/szenarien/` beruhen auf DWD-Tageswerten
+(GeoNutzV).

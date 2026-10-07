@@ -2,7 +2,7 @@
 #  FlamMap-Pipeline  |  Schritt 14: Abbildungen fuer die Thesis
 #  Rendert die Karten (Hoehenmodelle, Klassifikation, Fuel-Model,
 #  Vegetationsindizes, Simulationsergebnisse) als PDF nach figures/.
-#  Einbinden per \includegraphics[width=\linewidth]{figures/<name>.pdf}.
+#  Einbinden in Originalgroesse, ohne width-Skalierung (s. unten).
 #
 #  Ausgabeformat PDF: Beschriftungen, Achsen und Legenden bleiben
 #  Vektorgrafik und damit im Druck scharf. Der cairo-PNG-Treiber glaettet
@@ -12,11 +12,15 @@
 #  MAXCELL heruntergerechnet, die Dateien bleiben dadurch klein.
 #
 #  EINHEITLICHKEIT -- alle Karten teilen sich:
-#   * dieselbe Bildbreite (FIG_W_IN); da alle Abbildungen im Dokument auf
-#     \linewidth skaliert werden, erscheinen Schriften und Linien dadurch
-#     ueberall gleich gross,
+#   * ihre Enddarstellungsgroesse: Jede Abbildung wird in genau der Breite
+#     erzeugt, in der sie im Dokument steht, und dort NICHT skaliert. Die
+#     Schriftgroessen in den Karten entsprechen damit direkt den hier
+#     gesetzten Punktgroessen,
 #   * dieselben Raender, Achsen- und Legendenparameter (THEME),
-#   * dieselbe Leiste aus Massstab (fest 500 m) und Nordpfeil,
+#   * duenne Rahmen- und Achsenlinien statt des fetten terra-Kastens,
+#   * einen schlichten Nordpfeil und einen kleinen Massstab (fest 250 m).
+#     Einzelkarten tragen beide in der datenaermsten Kartenecke,
+#     Mehrfachkarten einmal fuer alle Teilkarten unter der Farbskala,
 #   * eine aus dem Kartenformat berechnete Bildhoehe, sodass keine
 #     leeren Raender entstehen,
 #   * KEINEN eingebrannten Titel -- die Beschriftung liefert die
@@ -35,25 +39,32 @@ szenarien   <- SZENARIEN
 # ------------------------------------------------------------
 #  Gemeinsames Layout ("Theme")
 # ------------------------------------------------------------
-#  Bildbreite = Textbreite des Dokuments (A4, Raender 2,9 cm -> 15,2 cm).
-#  Fuer eine Darstellung in 17,2 cm Breite FIG_W_IN auf 17.2 / 2.54 setzen,
-#  damit die Schriftgroessen exakt bleiben.
-FIG_W_IN  <- 15.2 / 2.54   # Bildbreite aller Abbildungen in Zoll
+#  Breite Karten stehen in der Arbeit in 17,2 cm Breite (Satzspiegel
+#  15,2 cm + je 1 cm Ueberhang), die beiden Hoehenmodelle untereinander
+#  in 14 cm Breite.
+FIG_W_IN   <- 17.2 / 2.54  # Breite der breiten Karten in Zoll
+FIG_W_HOEHE <- 14 / 2.54   # Breite der Hoehenmodell-Karten (CHM, DTM)
 FIG_PS    <- 12            # Punktgroesse
 LINE_IN   <- FIG_PS / 72   # Hoehe einer Textzeile in Zoll
 
 # oben 1.4 Zeilen, damit der Titel der Farbskala nicht abgeschnitten wird
 MAR_KONT  <- c(2.6, 3.4, 1.4, 4.2)   # unten, links, oben, rechts (Farbskala)
-MAR_KAT   <- c(2.6, 3.4, 1.4, 7.5)   # mehr Platz fuer Klassenlegende
-CEX_AX    <- 0.65     # Achsenbeschriftung  -> ca. 7,8 pt im Dokument
-CEX_LEG   <- 0.75     # Legende             -> ca. 9,0 pt im Dokument
-SBAR_M    <- 500      # Massstabsbalken: feste Laenge in Metern
+#  Kategoriale Karten: Klassenlegende liegt unten rechts IN der Karte (dort
+#  hat das AOI keine Daten), rechts bleibt daher nur ein schmaler Rand.
+MAR_KAT   <- c(2.6, 3.4, 1.4, 1.0)
+CEX_AX    <- 0.65     # Achsenbeschriftung  -> 7,8 pt
+CEX_LEG   <- 0.75     # Farbskalen          -> 9,0 pt
+CEX_LEG_KAT <- 0.85   # Klassenlegende      -> 10,2 pt
+SBAR_M    <- 250      # Massstabsbalken: feste Laenge in Metern
+LWD_RAHMEN <- 0.5     # Linienstaerke von Kartenrahmen und Achsen
 MAXCELL   <- 1.2e6    # Downsampling fuers Rendern grosser Raster
 
-#  Achsenparameter; s skaliert die Schrift bei Mehrfachkarten mit
-#  schmaleren Teilkarten.
-pax_von <- function(s = 1) list(cex.axis = CEX_AX * s, mgp = c(2, 0.4, 0),
-                                tcl = -0.25)
+#  Achsenparameter. terra zeichnet bei box = FALSE an allen vier Seiten
+#  eine Achsenlinie (side = 1:4); mit duenner Linie ergibt das den Rahmen.
+#  lab: Seiten mit Koordinatenbeschriftung (1 = unten, 2 = links).
+pax_von <- function(lab = 1:2) list(cex.axis = CEX_AX, mgp = c(2, 0.35, 0),
+                                    tcl = -0.2, lwd = LWD_RAHMEN,
+                                    side = 1:4, tick = lab, lab = lab)
 PAX <- pax_von()
 
 # ------------------------------------------------------------
@@ -71,8 +82,10 @@ seq_water <- hcl.colors(100, "YlGnBu")               # NDWI
 klass_id  <- as.integer(names(KLASSEN))
 klass_lab <- c("Heide", "Gras", "Laubwald",
                "Nadelwald", "Moor/Nass", "Offenland/Boden")
-klass_col <- c("#9E5BA6", "#C9A227", "#4DAF4A",
-               "#1B5E3F", "#3B82C4", "#D9C7A3")
+#  Laub- und Nadelwald unterscheiden sich deutlich in der Helligkeit,
+#  Gras (goldgelb) und Offenland (neutralgrau) im Farbton.
+klass_col <- c("#9E5BA6", "#D9A821", "#9ACD5A",
+               "#0E4D2A", "#3B82C4", "#BDBDBD")
 
 fuel_id   <- as.integer(FUEL_REIHENFOLGE)
 fuel_lab  <- c("GA-heath (Heide)", "GR4 (Gras)", "TL6 (Laubwald)",
@@ -84,42 +97,96 @@ fuel_col  <- c("#9E5BA6", "#C9A227", "#4DAF4A",
 #  Bildhoehe aus Kartenformat und Raendern berechnen.
 #  nc/nr = Anzahl Spalten/Zeilen bei Mehrfachkarten.
 # ------------------------------------------------------------
-fig_hoehe_in <- function(r, mar, nc = 1, nr = 1, extra_top_lines = 0) {
+fig_hoehe_in <- function(r, mar, nc = 1, nr = 1, extra_top_lines = 0,
+                         breite_in = FIG_W_IN) {
   e <- as.vector(ext(r))
   asp <- (e[["ymax"]] - e[["ymin"]]) / (e[["xmax"]] - e[["xmin"]])
-  panel_w_in <- FIG_W_IN / nc - (mar[2] + mar[4]) * LINE_IN
+  panel_w_in <- breite_in / nc - (mar[2] + mar[4]) * LINE_IN
   panel_h_in <- panel_w_in * asp
   nr * (panel_h_in + (mar[1] + mar[3] + extra_top_lines) * LINE_IN)
 }
 
-fig_auf <- function(datei, hoehe_in) {
-  pdf(file.path(fig_dir, datei), width = FIG_W_IN, height = hoehe_in,
+fig_auf <- function(datei, hoehe_in, breite_in = FIG_W_IN) {
+  pdf(file.path(fig_dir, datei), width = breite_in, height = hoehe_in,
       pointsize = FIG_PS, bg = "white", useDingbats = FALSE)
 }
 
 # ------------------------------------------------------------
-#  Massstab + Nordpfeil, in jeder Karte an derselben relativen
-#  Position (unten links, wo das AOI keine Daten hat).
+#  Nordpfeil und Massstab
 # ------------------------------------------------------------
-#  Hinweis: von den Nordpfeil-Typen in terra::north() zeichnet nur
-#  type = 1 tatsaechlich einen Pfeil; die uebrigen liefern einen leeren
-#  Rahmen. Daher fest auf type = 1.
-deko <- function(r, s = 1) {
-  e <- as.vector(ext(r))
+#  Beide werden mit Basisgrafik in Kartenkoordinaten gezeichnet: ein
+#  schlichter Pfeil mit "N" und ein zweigeteilter Balken. terra::north()
+#  und terra::sbar() lieferten zu wuchtige Symbole.
+nordpfeil <- function(x, y, h, s = 1) {
+  arrows(x, y, x, y + h, length = 0.07 * s, angle = 22, lwd = 1.1 * s)
+  text(x, y + h, "N", pos = 3, offset = 0.12, cex = 0.7 * s, font = 2)
+}
+
+massstab <- function(x0, y0, laenge, h, s = 1) {
+  rect(x0, y0, x0 + laenge / 2, y0 + h, col = "black", border = "black", lwd = 0.5)
+  rect(x0 + laenge / 2, y0, x0 + laenge, y0 + h, col = "white", border = "black",
+       lwd = 0.5)
+  text(c(x0, x0 + laenge), y0, c("0", paste(laenge, "m")), pos = 1,
+       offset = 0.18, cex = 0.6 * s)
+}
+
+#  Datenaermste Kartenecke: Anteil der Zellen mit Daten je Eckbereich
+#  (22 % der Breite und Hoehe), ausgeschlossene Ecken bleiben frei,
+#  etwa die unten rechts liegende Klassenlegende.
+ecke_waehlen <- function(r, ausschluss = character()) {
+  e  <- as.vector(ext(r))
   bx <- e[["xmax"]] - e[["xmin"]]; by <- e[["ymax"]] - e[["ymin"]]
-  x0 <- e[["xmin"]] + 0.02 * bx
-  try(sbar(d = SBAR_M, xy = c(x0, e[["ymin"]] + 0.06 * by), type = "bar",
-           divs = 2, below = "m", cex = 0.6 * s, ticks = TRUE), silent = TRUE)
-  try(north(xy = c(x0 + 0.02 * bx, e[["ymin"]] + 0.20 * by),
-            type = 1, cex = 1.0 * s), silent = TRUE)
+  g  <- aggregate(!is.na(r[[1]]), fact = max(1, floor(ncol(r) / 150)),
+                  fun = "mean", na.rm = TRUE)
+  wx <- 0.22 * bx; wy <- 0.22 * by
+  ecken <- list(
+    bottomleft  = ext(e[["xmin"]], e[["xmin"]] + wx, e[["ymin"]], e[["ymin"]] + wy),
+    topleft     = ext(e[["xmin"]], e[["xmin"]] + wx, e[["ymax"]] - wy, e[["ymax"]]),
+    topright    = ext(e[["xmax"]] - wx, e[["xmax"]], e[["ymax"]] - wy, e[["ymax"]]),
+    bottomright = ext(e[["xmax"]] - wx, e[["xmax"]], e[["ymin"]], e[["ymin"]] + wy))
+  ecken  <- ecken[setdiff(names(ecken), ausschluss)]
+  anteil <- vapply(ecken, function(k) {
+    v <- values(crop(g, k), mat = FALSE)
+    mean(ifelse(is.na(v), 0, v))
+  }, numeric(1))
+  names(which.min(anteil))
+}
+
+#  Einzelkarte: Massstab und Nordpfeil in der datenaermsten Ecke
+deko <- function(r, ausschluss = character()) {
+  e  <- as.vector(ext(r))
+  bx <- e[["xmax"]] - e[["xmin"]]; by <- e[["ymax"]] - e[["ymin"]]
+  ecke  <- ecke_waehlen(r, ausschluss)
+  links <- grepl("left", ecke); unten <- grepl("bottom", ecke)
+  # rechts mehr Abstand, damit die Beschriftung "250 m" nicht am Rahmen klebt
+  x0 <- if (links) e[["xmin"]] + 0.03 * bx else e[["xmax"]] - 0.07 * bx - SBAR_M
+  y0 <- if (unten) e[["ymin"]] + 0.05 * by else e[["ymax"]] - 0.17 * by
+  massstab(x0, y0, SBAR_M, h = 0.012 * by)
+  nordpfeil(x0 + SBAR_M / 2, y0 + 0.045 * by, h = 0.06 * by)
+}
+
+#  Mehrfachkarte: Massstab und Nordpfeil einmal fuer alle Teilkarten in
+#  einem eigenen Bereich (Normalized Device Coordinates). m_pro_in ist der
+#  Kartenmassstab der Teilkarten in Metern je Zoll, damit der Balken dort
+#  dieselbe Laenge hat wie in den Karten.
+deko_global <- function(fig_ndc, breite_in, hoehe_in, m_pro_in) {
+  par(fig = fig_ndc, new = TRUE, mar = c(0, 0, 0, 0))
+  plot.new()
+  bx <- breite_in * m_pro_in; by <- hoehe_in * m_pro_in
+  plot.window(xlim = c(0, bx), ylim = c(0, by), xaxs = "i", yaxs = "i")
+  x0 <- (bx - SBAR_M) / 2
+  massstab(x0, 0.16 * by, SBAR_M, h = 0.05 * by)
+  nordpfeil(bx / 2, 0.36 * by, h = 0.26 * by)
 }
 
 # ------------------------------------------------------------
 #  Helfer: kontinuierliche Karte
 # ------------------------------------------------------------
-karte_kontinuierlich <- function(r, datei, pal, range = NULL, legende = "") {
-  fig_auf(datei, fig_hoehe_in(r, MAR_KONT))
+karte_kontinuierlich <- function(r, datei, pal, range = NULL, legende = "",
+                                 breite_in = FIG_W_IN) {
+  fig_auf(datei, fig_hoehe_in(r, MAR_KONT, breite_in = breite_in), breite_in)
   args <- list(r, col = pal, maxcell = MAXCELL, mar = MAR_KONT, pax = PAX,
+               box = FALSE,
                plg = list(title = legende, title.cex = CEX_LEG, cex = CEX_LEG))
   if (!is.null(range)) args$range <- range
   do.call(plot, args)
@@ -138,10 +205,16 @@ karte_kategorial <- function(r, datei, ids, labels, cols) {
   vals <- vals[vals %in% ids]
   ord  <- match(vals, ids)
   levels(r) <- data.frame(id = vals, klasse = labels[ord])
+  #  terra ignoriert inset bei Positions-Schluesselwoertern; der Abstand
+  #  zum Kartenrahmen wird daher per nudge (Karteneinheiten) gesetzt.
+  e  <- as.vector(ext(r))
+  dx <- 0.01 * (e[["xmax"]] - e[["xmin"]])
   fig_auf(datei, fig_hoehe_in(r, MAR_KAT))
   plot(r, col = cols[ord], maxcell = MAXCELL, mar = MAR_KAT, pax = PAX,
-       plg = list(cex = CEX_LEG))
-  deko(r)
+       box = FALSE,
+       plg = list(x = "bottomright", nudge = c(-dx, 0), cex = CEX_LEG_KAT,
+                  border = "grey35", bty = "n"))
+  deko(r, ausschluss = "bottomright")
   dev.off()
   cat("geschrieben:", datei, "\n")
 }
@@ -154,8 +227,10 @@ vorhanden <- function(p) if (file.exists(p)) p else { cat("FEHLT:", p, "\n"); NA
 # ------------------------------------------------------------
 tryCatch({
   p <- vorhanden(pfad("elevation.tif"))
+  #  Ellipsoidische Hoehen (rund 46 m ueber NHN); das steht in der Caption,
+  #  die Farbskala traegt daher nur die Einheit.
   if (!is.na(p)) karte_kontinuierlich(rast(p), "fig_gelaende.pdf",
-      seq_elev, legende = "m ü. NN")
+      seq_elev, legende = "Höhe [m]", breite_in = FIG_W_HOEHE)
 }, error = function(e) cat("Fehler fig_gelaende:", conditionMessage(e), "\n"))
 
 # ------------------------------------------------------------
@@ -166,7 +241,7 @@ tryCatch({
   if (!is.na(p)) {
     r <- clamp(rast(p), 0, CHM_MAX, values = TRUE)
     karte_kontinuierlich(r, "fig_chm.pdf", seq_chm,
-      range = c(0, CHM_MAX), legende = "Höhe [m]")
+      range = c(0, CHM_MAX), legende = "Höhe [m]", breite_in = FIG_W_HOEHE)
   }
 }, error = function(e) cat("Fehler fig_chm:", conditionMessage(e), "\n"))
 
@@ -192,29 +267,31 @@ tryCatch({
 #  Helfer: Mehrfachkarte (gleiches Gebiet, mehrere Layer nebeneinander)
 #
 #  Alle Teilkarten teilen sich Palette und Wertespanne und damit EINE
-#  gemeinsame Farbskala am rechten Rand. Das ist nicht nur platzsparend
-#  (bei drei Teilkarten auf Textbreite bliebe fuer je eigene Legende und
-#  Achsen kaum Kartenflaeche uebrig), sondern auch die Voraussetzung
-#  dafuer, dass die Teilkarten visuell vergleichbar sind. Auf
-#  Koordinatenachsen wird in den Teilkarten verzichtet; die Verortung
-#  leisten die Einzelkarten, den Massstabsbezug der Massstabsbalken in
-#  der ersten Teilkarte.
+#  gemeinsame Farbskala am rechten Rand. Das ist nicht nur platzsparend,
+#  sondern auch die Voraussetzung dafuer, dass die Teilkarten visuell
+#  vergleichbar sind. Koordinaten stehen nur an den Aussenkanten (unten
+#  bzw. links), Massstab und Nordpfeil einmal fuer alle Teilkarten unter
+#  der Farbskala.
 # ------------------------------------------------------------
-MAR_PANEL <- c(0.4, 0.4, 1.4, 0.4)   # Rand je Teilkarte (ohne Achsen)
-LEG_W_IN  <- 0.95                    # Breite der gemeinsamen Farbskala
+MAR_PANEL <- c(1.7, 2.2, 1.3, 0.3)   # Rand je Teilkarte (mit Achsen)
+LEG_W_IN  <- 0.8                     # Breite der rechten Spalte
+DEKO_H_IN <- 0.85                    # Hoehe des Bereichs fuer Nordpfeil/Massstab
 
 farbskala <- function(pal, range, titel) {
-  par(mar = c(MAR_PANEL[1], 0.4, MAR_PANEL[3], 2.8))
+  # Platz fuer deko_global plus Abstand zur unteren Skalenbeschriftung
+  unten <- MAR_PANEL[1] + (DEKO_H_IN + 0.25) / LINE_IN
+  par(mar = c(unten, 0.4, MAR_PANEL[3], 2.6))
   plot.new()
   plot.window(xlim = c(0, 1), ylim = range, xaxs = "i", yaxs = "i")
   rasterImage(matrix(rev(pal), ncol = 1), 0, range[1], 1, range[2],
               interpolate = FALSE)
-  rect(0, range[1], 1, range[2])
-  axis(4, cex.axis = CEX_LEG, las = 1, mgp = c(2, 0.4, 0), tcl = -0.25)
+  rect(0, range[1], 1, range[2], lwd = LWD_RAHMEN)
+  axis(4, cex.axis = CEX_LEG, las = 1, mgp = c(2, 0.4, 0), tcl = -0.25,
+       lwd = LWD_RAHMEN)
   if (nzchar(titel)) mtext(titel, side = 3, line = 0.3, cex = CEX_LEG)
 }
 
-#  overlay: optionale Funktion(i), die nach dem Zeichnen der i-ten
+#  overlay: optionale Funktion(i, r), die nach dem Zeichnen der i-ten
 #  Teilkarte zusaetzliche Geometrien einzeichnet.
 panel_karte <- function(lyr, datei, labels, pal, range,
                         einheit = "", nc = 2, overlay = NULL) {
@@ -233,19 +310,24 @@ panel_karte <- function(lyr, datei, labels, pal, range,
   mat[mat > n] <- 0
   layout(cbind(mat, n + 1),
          widths = c(rep(lcm(avail_in / nc * 2.54), nc), lcm(LEG_W_IN * 2.54)))
-  s <- if (nc >= 3) 0.7 else 0.85    # Deko an Teilkartenbreite anpassen
+  m_pro_in <- NA
   for (i in seq_len(n)) {
+    zeile <- ceiling(i / nc); spalte <- (i - 1) %% nc + 1
+    # x-Koordinaten unten, wenn darunter keine Teilkarte mehr folgt,
+    # y-Koordinaten an der linken Spalte
+    lab <- c(if (zeile == nr || i + nc > n) 1, if (spalte == 1) 2)
     plot(lyr[[i]], col = pal, range = range, maxcell = MAXCELL,
-         mar = MAR_PANEL, axes = FALSE, legend = FALSE,
+         mar = MAR_PANEL, legend = FALSE, box = FALSE,
+         pax = pax_von(if (length(lab)) lab else 0),
          main = labels[i], cex.main = 0.9)
-    if (!is.null(overlay)) overlay(i)
-    # Rahmen explizit ueber die Rasterausdehnung; box() zoege ihn nach
-    # dem terra-Plot an der falschen Stelle.
-    ep <- as.vector(ext(lyr[[i]]))
-    rect(ep[["xmin"]], ep[["ymin"]], ep[["xmax"]], ep[["ymax"]], xpd = NA)
-    if (i == 1) deko(lyr[[i]], s)   # Massstab/Nordpfeil einmal je Abbildung
+    if (i == 1) m_pro_in <- diff(par("usr")[1:2]) / par("pin")[1]
+    if (!is.null(overlay)) overlay(i, lyr[[i]])
   }
   farbskala(pal, range, einheit)
+  # Nordpfeil und Massstab unter der Farbskala, im Massstab der Teilkarten
+  x_ndc <- c((FIG_W_IN - LEG_W_IN) / FIG_W_IN, 1)
+  y_ndc <- c(MAR_PANEL[1] * LINE_IN, MAR_PANEL[1] * LINE_IN + DEKO_H_IN) / h_in
+  deko_global(c(x_ndc, y_ndc), LEG_W_IN, DEKO_H_IN, m_pro_in)
   dev.off()
   cat("geschrieben:", datei, "\n")
 }
@@ -258,10 +340,11 @@ tryCatch({
                function(f) vorhanden(pfad(f)), character(1))
   if (!any(is.na(ps))) {
     # Alle drei sind normierte Differenzindizes auf [-1, 1] und werden
-    # daher mit identischer Palette und Spanne dargestellt.
+    # daher mit identischer Palette und Spanne dargestellt. Zwei Spalten
+    # statt drei: jede Teilkarte wird so deutlich groesser.
     panel_karte(lapply(ps, rast), "fig_indizes.pdf",
                 labels = c("NDVI", "NDRE", "NDWI"),
-                pal = div_veg, range = c(-1, 1), nc = 3)
+                pal = div_veg, range = c(-1, 1), nc = 2)
   }
 }, error = function(e) cat("Fehler fig_indizes:", conditionMessage(e), "\n"))
 
@@ -335,13 +418,30 @@ tryCatch({
     barr <- project(vect(fp_datei(file.path(flammap_dir, MTT_BARRIERE))),
                     crs(a_ohne))
 
+    #  Zuendpunkt als hellgruener Stern mit schwarzer Kontur: hebt sich
+    #  von allen Toenen der Inferno-Palette und vom Weiss ab.
+    ign_xy  <- crds(ign)
+    ign_col <- "#39FF14"
+    stern <- function(cex = 1.5) {
+      points(ign_xy, pch = 8, cex = cex, col = "black", lwd = 3.2)
+      points(ign_xy, pch = 8, cex = cex, col = ign_col, lwd = 1.6)
+    }
     panel_karte(list(a_ohne, a_mit), "fig_mtt_barriere.pdf",
                 labels = c("ohne Riegelstellung", "mit Riegelstellung"),
                 pal = seq_fire, range = c(0, cap), einheit = "min", nc = 2,
-                overlay = function(i) {
+                overlay = function(i, r) {
                   # Riegelstellung nur in der zweiten Teilkarte wirksam
                   if (i == 2) plot(barr, col = "cyan", lwd = 2.5, add = TRUE)
-                  plot(ign, pch = 8, cex = 1.2, col = "white", add = TRUE)
+                  stern()
+                  if (i == 2) {
+                    ecke <- ecke_waehlen(r)
+                    legend(ecke, inset = 0.02, bty = "o", bg = "white",
+                           box.lwd = LWD_RAHMEN, cex = CEX_LEG,
+                           legend = c("Riegelstellung", "Zündpunkt"),
+                           col = c("cyan", ign_col), lty = c(1, NA),
+                           lwd = c(2.5, NA), pch = c(NA, 8), pt.lwd = 1.6,
+                           pt.cex = 1.2)
+                  }
                 })
   } else cat("FEHLT:", f_ohne, "oder", f_mit, "\n")
 }, error = function(e) cat("Fehler fig_mtt_barriere:", conditionMessage(e), "\n"))
